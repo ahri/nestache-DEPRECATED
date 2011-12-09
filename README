@@ -1,0 +1,16 @@
+I don't like the View that pystache provides.
+
+My alternative will use something like:
+
+for cls in self.__class__.mro():
+    [f for f in cls.__dict__.values()
+             if inspect.isfunction(f) and
+                 not f.func_name.startswith('_')]
+
+to construct dicts to pass to render() per class.
+
+It will also provide, through some genius I've yet to clarify, the render
+results of the subclass to their superclass.
+
+The idea is that you can have a template with {{& _content_}} that will then be
+populated by a subclass.
