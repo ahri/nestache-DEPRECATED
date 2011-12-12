@@ -4,3 +4,5 @@ bin/
 include/
 lib/
 man/
+lib64
+share/
