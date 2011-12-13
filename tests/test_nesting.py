@@ -10,6 +10,11 @@ class Base(View):
     A simple base class
     """
 
+    def __init__(self):
+        super(Base, self).__init__()
+        # set strictness the same as pystache
+        self.strictness = View.ERR_NEVER
+
     def base_var(self):
         return "base_var"
 
@@ -122,6 +127,7 @@ class Nesting(TestCase):
         # Arrange
         b = Base()
         b.template[Base] = "{{base_vr}}"
+        b.strictness |= View.ERR_MISSING_DATA
 
         # Act, Assert
         self.assertRaises(AttributeError, b.render)
@@ -131,7 +137,7 @@ class Nesting(TestCase):
         # Arrange
         b = Base()
         b.template[Base] = "{{base_vr}}"
-        b.lax = True
+        b.strictness = View.ERR_NEVER
 
         # Act, Assert
         self.assertEqual(b.render(), '')
@@ -161,8 +167,17 @@ class Nesting(TestCase):
                        Base:         "{{base_var}}{{c_tgt}}" }
 
         # Act, Assert
-        self.assertFalse(a.lax)
         self.assertEqual(a.render(),
                          render(a.template.get(Base), dict(base_var=a.base_var())) + \
                          render(a.template.get(Child), dict(child_var=a.child_var())) + \
                          render(a.template.get(AnotherChild), dict(another_child_var=a.another_child_var())))
+
+    def test_must_use_all(self):
+        """A template must use all data supplied if in stricter mode"""
+        # Arrange
+        b = Base()
+        b.template[Base] = ""
+        b.strictness = View.ERR_ALWAYS
+
+        # Act, Assert
+        self.assertRaises(KeyError, b.render)
