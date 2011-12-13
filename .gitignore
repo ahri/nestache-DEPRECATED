@@ -6,3 +6,5 @@ lib/
 man/
 lib64
 share/
+*.egg-info/
+dist/
