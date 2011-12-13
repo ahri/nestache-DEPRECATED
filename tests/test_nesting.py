@@ -49,7 +49,7 @@ class Nesting(TestCase):
         """No valid template"""
         # Arrange
         b = Base()
-        b.template_file = 'non-existant'
+        b.template_file[Base] = 'non-existant'
 
         # Act, Assert
         self.assertRaises(IOError, b.render)
@@ -66,7 +66,7 @@ class Nesting(TestCase):
         """Provide the path and resolve the full name"""
         # Arrange
         b = Base()
-        b.template_path = "test"
+        b.template_path[Base] = "test"
 
         # Act, Assert
         self.assertEqual(b._resolve_full_path(Base), "test/Base.mustache")
@@ -75,7 +75,7 @@ class Nesting(TestCase):
         """Provide the extension and resolve the full name"""
         # Arrange
         b = Base()
-        b.template_extension = "test"
+        b.template_extension[Base] = "test"
 
         # Act, Assert
         self.assertEqual(b._resolve_full_path(Base), "./Base.test")
@@ -84,7 +84,7 @@ class Nesting(TestCase):
         """Provide the name and resolve the full name"""
         # Arrange
         b = Base()
-        b.template_name = "test"
+        b.template_name[Base] = "test"
 
         # Act, Assert
         self.assertEqual(b._resolve_full_path(Base), "./test.mustache")
@@ -93,7 +93,7 @@ class Nesting(TestCase):
         """Provide the file and resolve the full name"""
         # Arrange
         b = Base()
-        b.template_file = "test"
+        b.template_file[Base] = "test"
 
         # Act, Assert
         self.assertEqual(b._resolve_full_path(Base), "./test")
@@ -102,7 +102,7 @@ class Nesting(TestCase):
         """Provide the template"""
         # Arrange
         b = Base()
-        b.template = "test"
+        b.template[Base] = "test"
 
         # Act, Assert
         self.assertEqual(b.render(), "test")
@@ -111,17 +111,17 @@ class Nesting(TestCase):
         """Provide the template and a valid substitution"""
         # Arrange
         b = Base()
-        b.template = "{{base_var}}"
+        b.template[Base] = "{{base_var}}"
 
         # Act, Assert
         self.assertEqual(b.render(),
-                         render(b.template, dict(base_var=b.base_var())))
+                         render(b.template.get(Base), dict(base_var=b.base_var())))
 
     def test_tpl_substitution_missing(self):
         """Provide the template and an invalid substitution"""
         # Arrange
         b = Base()
-        b.template = "{{base_vr}}"
+        b.template[Base] = "{{base_vr}}"
 
         # Act, Assert
         self.assertRaises(AttributeError, b.render)
@@ -130,7 +130,7 @@ class Nesting(TestCase):
         """Provide the template and an invalid substitution in lax mode"""
         # Arrange
         b = Base()
-        b.template = "{{base_vr}}"
+        b.template[Base] = "{{base_vr}}"
         b.lax = True
 
         # Act, Assert
