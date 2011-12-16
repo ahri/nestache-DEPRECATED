@@ -15,7 +15,7 @@ from setuptools import setup
 
 setup(
     name='Nestache',
-    version='0.2.0',
+    version='0.2.1',
     url='http://github.com/ahri/nestache',
     license='AGPLv3',
     author='Adam Piper',
