@@ -10,11 +10,6 @@ class Base(View):
     A simple base class
     """
 
-    def __init__(self):
-        super(Base, self).__init__()
-        # set strictness the same as pystache
-        self.strictness = View.ERR_NEVER
-
     def base_var(self):
         return "base_var"
 
@@ -43,6 +38,15 @@ class AnotherChild(Child):
 
     def another_child_var(self):
         return "another_child_var"
+
+class Magic(View):
+
+    """
+    A simple class for which a basic template will be generated
+    """
+
+    def magic(self):
+        return "Magical"
 
 class Nesting(TestCase):
 
@@ -107,6 +111,8 @@ class Nesting(TestCase):
         """Provide the template"""
         # Arrange
         b = Base()
+        b.options = View.OPT_IGNORE_MISSING |\
+                    View.OPT_IGNORE_UNREQUESTED
         b.template[Base] = "test"
 
         # Act, Assert
@@ -127,7 +133,6 @@ class Nesting(TestCase):
         # Arrange
         b = Base()
         b.template[Base] = "{{base_vr}}"
-        b.strictness |= View.ERR_MISSING_DATA
 
         # Act, Assert
         self.assertRaises(AttributeError, b.render)
@@ -137,7 +142,8 @@ class Nesting(TestCase):
         # Arrange
         b = Base()
         b.template[Base] = "{{base_vr}}"
-        b.strictness = View.ERR_NEVER
+        b.options = View.OPT_IGNORE_MISSING |\
+                    View.OPT_IGNORE_UNREQUESTED
 
         # Act, Assert
         self.assertEqual(b.render(), '')
@@ -146,6 +152,7 @@ class Nesting(TestCase):
         """Test rendering different levels of a class hierarchy"""
         # Arrange
         a = AnotherChild()
+        a.options = View.OPT_IGNORE_UNREQUESTED
         a.template = { AnotherChild: "{{another_child_var}}",
                        Child:        "{{child_var}}",
                        Base:         "{{base_var}}" }
@@ -177,7 +184,16 @@ class Nesting(TestCase):
         # Arrange
         b = Base()
         b.template[Base] = ""
-        b.strictness = View.ERR_ALWAYS
 
         # Act, Assert
         self.assertRaises(KeyError, b.render)
+
+    def test_magic_tpl(self):
+        """When a class has the magic template bit
+           set it should generate its own template"""
+        # Arrange
+        m = Magic()
+        m.options = View.OPT_MAGIC_TPL
+
+        # Act, Assert
+        self.assertEqual(m.render(), """{'magic': 'Magical'}""")

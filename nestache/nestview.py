@@ -6,6 +6,7 @@ Simple module built on top of the Mustache templating system.
 
 import os
 import inspect
+from pprint import pformat
 from pystache import Template
 
 def func_names_on_class(cls):
@@ -15,19 +16,39 @@ def func_names_on_class(cls):
             if inspect.isfunction(f) and
                 not f.func_name.startswith('_')])
 
+class SandboxCallState(object):
+
+    """
+    This is really dirty but it's needed because we need to maintain
+    sandboxed state-awareness whilst sub-templates are rendered using the same
+    object -- which would otherwise trample on the _view_render_calls set.
+
+    Not happy with this.
+    """
+
+    def __init__(self, view):
+        self.view = view
+        self.tmp = None
+
+    def __enter__(self):
+        self.tmp = self.view._render_calls
+
+    def __exit__(self, *_):
+        self.view._render_calls = self.tmp
+
 class View(object):
 
     """
     Nestache View: a nested Mustache template View.
     """
 
-    ERR_NEVER            = 0b00
-    ERR_MISSING_DATA     = 0b01
-    ERR_UNREQUESTED_DATA = 0b10
-    ERR_ALWAYS           = ERR_MISSING_DATA | ERR_UNREQUESTED_DATA
+    OPT_NONE               = 0b000
+    OPT_IGNORE_MISSING     = 0b001
+    OPT_IGNORE_UNREQUESTED = 0b010
+    OPT_MAGIC_TPL          = 0b100
 
     def __init__(self):
-        self.strictness         =  View.ERR_ALWAYS
+        self.options            =  View.OPT_NONE
 
         self.hooks              = {}
 
@@ -43,10 +64,21 @@ class View(object):
     def _resolve_template(self, cls):
         """Either provide specified content or
            fall back to content from a file"""
+        if View.OPT_MAGIC_TPL & self.options:
+            return self._magic_tpl(cls)
+
         if cls in self.template:
             return self.template.get(cls)
 
         return open(self._resolve_full_path(cls)).read()
+
+    def _magic_tpl(self, cls):
+        """Generate a simple template using prettyprint"""
+        d = {}
+        for f in func_names_on_class(cls):
+            d[f] = "{{%s}}" % f
+
+        return pformat(d)
 
     def _resolve_full_path(self, cls):
         """Determine the full path of a file"""
@@ -74,13 +106,13 @@ class View(object):
 
     def get(self, attr, _):
         """Quack like a dict."""
-        try:
+        if attr in self.hooks:
             val = self.render(self.hooks[attr])
-        except KeyError:
+        else:
             try:
                 val = getattr(self, attr)()
             except AttributeError:
-                if not self.strictness & View.ERR_MISSING_DATA:
+                if self.options & View.OPT_IGNORE_MISSING:
                     val = ''
                 else:
                     raise
@@ -96,8 +128,11 @@ class View(object):
 
         self._render_calls = set()
         expected_render_calls = func_names_on_class(cls)
-        rendered = Template(self._resolve_template(cls), self).render()
-        if self.strictness & View.ERR_UNREQUESTED_DATA and \
+
+        with SandboxCallState(self):
+            rendered = Template(self._resolve_template(cls), self).render()
+
+        if not self.options & View.OPT_IGNORE_UNREQUESTED and \
             self._render_calls != expected_render_calls:
 
             raise KeyError("Missing calls to: %s" % \
