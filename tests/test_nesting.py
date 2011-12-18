@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from unittest import TestCase
-from nestache import View
+from nestache import View, debug_tpl
 from pystache import render
 
 class Base(View):
@@ -39,14 +39,14 @@ class AnotherChild(Child):
     def another_child_var(self):
         return "another_child_var"
 
-class Magic(View):
+class Debug(View):
 
     """
     A simple class for which a basic template will be generated
     """
 
-    def magic(self):
-        return "Magical"
+    def debug(self):
+        return "Debug"
 
 class Nesting(TestCase):
 
@@ -188,12 +188,11 @@ class Nesting(TestCase):
         # Act, Assert
         self.assertRaises(KeyError, b.render)
 
-    def test_magic_tpl(self):
-        """When a class has the magic template bit
-           set it should generate its own template"""
+    def test_debug_tpl(self):
+        """Generate a debug template"""
         # Arrange
-        m = Magic()
-        m.options = View.OPT_MAGIC_TPL
+        m = Debug()
+        m.template[Debug] = debug_tpl(Debug)
 
         # Act, Assert
-        self.assertEqual(m.render(), """{'magic': 'Magical'}""")
+        self.assertEqual(m.render(), """<pre>{'debug': 'Debug'}</pre>""")

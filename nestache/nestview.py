@@ -16,6 +16,14 @@ def func_names_on_class(cls):
             if inspect.isfunction(f) and
                 not f.func_name.startswith('_')])
 
+def debug_tpl(cls):
+    """Generate a simple template using prettyprint"""
+    d = {}
+    for f in func_names_on_class(cls):
+        d[f] = "{{%s}}" % f
+
+    return "<pre>%s</pre>" % pformat(d)
+
 class SandboxCallState(object):
 
     """
@@ -42,10 +50,9 @@ class View(object):
     Nestache View: a nested Mustache template View.
     """
 
-    OPT_NONE               = 0b000
-    OPT_IGNORE_MISSING     = 0b001
-    OPT_IGNORE_UNREQUESTED = 0b010
-    OPT_MAGIC_TPL          = 0b100
+    OPT_NONE               = 0000
+    OPT_IGNORE_MISSING     = 0001
+    OPT_IGNORE_UNREQUESTED = 0010
 
     def __init__(self):
         self.options            =  View.OPT_NONE
@@ -64,21 +71,10 @@ class View(object):
     def _resolve_template(self, cls):
         """Either provide specified content or
            fall back to content from a file"""
-        if View.OPT_MAGIC_TPL & self.options:
-            return self._magic_tpl(cls)
-
         if cls in self.template:
             return self.template.get(cls)
 
         return open(self._resolve_full_path(cls)).read()
-
-    def _magic_tpl(self, cls):
-        """Generate a simple template using prettyprint"""
-        d = {}
-        for f in func_names_on_class(cls):
-            d[f] = "{{%s}}" % f
-
-        return pformat(d)
 
     def _resolve_full_path(self, cls):
         """Determine the full path of a file"""
