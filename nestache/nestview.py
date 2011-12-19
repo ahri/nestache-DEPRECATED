@@ -83,7 +83,7 @@ class View(object):
     def _resolve_name(self, cls):
         """Either provide a specified name, or
            fall back to the name of the class"""
-        return self.template_name.get(cls, self.__class__.__name__)
+        return self.template_name.get(cls, cls.__name__)
 
     def _resolve_file(self, name, cls):
         """Given a name, provide the filename with

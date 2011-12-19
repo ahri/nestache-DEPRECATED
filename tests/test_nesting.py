@@ -196,3 +196,14 @@ class Nesting(TestCase):
 
         # Act, Assert
         self.assertEqual(m.render(), """<pre>{'debug': 'Debug'}</pre>""")
+
+    def test_tpl_nest_missing_middle(self):
+        """Miss out a template for a superclass layer of Child"""
+        # Arrange
+        c = Child()
+        c.template[Child] = "{{child_var}}"
+
+        # Act, Assert
+        c.render(Child) # should work fine
+        self.assertRaises(IOError, c.render, Base)
+        self.assertRaises(IOError, c.render)
