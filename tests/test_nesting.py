@@ -48,6 +48,10 @@ class Debug(View):
     def debug(self):
         return "Debug"
 
+class Inherited(Base):
+
+    pass
+
 class Nesting(TestCase):
 
     """
@@ -207,3 +211,11 @@ class Nesting(TestCase):
         c.render(Child) # should work fine
         self.assertRaises(IOError, c.render, Base)
         self.assertRaises(IOError, c.render)
+
+    def test_inherited_methods_ignored(self):
+        """Inherited methods shouldn't be noticed (NB. wrt. strict mode)"""
+        i = Inherited()
+        i.template[Base] = "{{base_var}}{{hook}}"
+        i.template[Inherited] = ""
+        i.hooks['hook'] = Inherited
+        i.render()
