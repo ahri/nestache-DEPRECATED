@@ -110,3 +110,7 @@ class View(object):
                     self._render_calls))
 
         return rendered
+
+    @staticmethod
+    def set_global_path(path):
+        PystacheView.template_path = path

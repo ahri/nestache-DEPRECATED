@@ -2,7 +2,7 @@
 
 from unittest import TestCase
 from nestache import View, debug_tpl
-from pystache import render
+import pystache
 
 class Base(View):
 
@@ -86,7 +86,7 @@ class Nesting(TestCase):
 
         # Act, Assert
         self.assertEqual(b.render(),
-                         render(b.template.get(Base), dict(base_var=b.base_var())))
+                         pystache.render(b.template.get(Base), dict(base_var=b.base_var())))
 
     def test_tpl_substitution_missing(self):
         """Provide the template and an invalid substitution"""
@@ -119,11 +119,11 @@ class Nesting(TestCase):
 
         # Act, Assert
         self.assertEqual(a.render(Base),
-                         render(a.template.get(Base), dict(base_var=a.base_var())))
+                         pystache.render(a.template.get(Base), dict(base_var=a.base_var())))
         self.assertEqual(a.render(Child),
-                         render(a.template.get(Child), dict(child_var=a.child_var())))
+                         pystache.render(a.template.get(Child), dict(child_var=a.child_var())))
         self.assertEqual(a.render(AnotherChild),
-                         render(a.template.get(AnotherChild), dict(another_child_var=a.another_child_var())))
+                         pystache.render(a.template.get(AnotherChild), dict(another_child_var=a.another_child_var())))
 
     def test_tpl_nesting(self):
         """Given a few templates, check that nesting works"""
@@ -135,9 +135,9 @@ class Nesting(TestCase):
 
         # Act, Assert
         self.assertEqual(a.render(),
-                         render(a.template.get(Base), dict(base_var=a.base_var())) + \
-                         render(a.template.get(Child), dict(child_var=a.child_var())) + \
-                         render(a.template.get(AnotherChild), dict(another_child_var=a.another_child_var())))
+                         pystache.render(a.template.get(Base), dict(base_var=a.base_var())) + \
+                         pystache.render(a.template.get(Child), dict(child_var=a.child_var())) + \
+                         pystache.render(a.template.get(AnotherChild), dict(another_child_var=a.another_child_var())))
 
     def test_must_use_all(self):
         """A template must use all data supplied if in stricter mode"""
@@ -175,3 +175,9 @@ class Nesting(TestCase):
         i.template[Inherited] = " "
         i.hooks['hook'] = Inherited
         i.render()
+
+    def test_global_path_setting(self):
+        """Set a global path for searches"""
+        path = 'path'
+        View.set_global_path(path)
+        self.assertEqual(path, pystache.View.template_path)
