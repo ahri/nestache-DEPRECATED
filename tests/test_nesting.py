@@ -67,50 +67,6 @@ class Nesting(TestCase):
         # Act, Assert
         self.assertRaises(IOError, b.render)
 
-    def test_tpl_resolve_no_hints(self):
-        """Provide as few hints as possible for template name resolution"""
-        # Arrange
-        b = Base()
-
-        # Act, Assert
-        self.assertEqual(b._resolve_full_path(Base), "./Base.mustache")
-
-    def test_tpl_resolve_hint_path(self):
-        """Provide the path and resolve the full name"""
-        # Arrange
-        b = Base()
-        b.template_path[Base] = "test"
-
-        # Act, Assert
-        self.assertEqual(b._resolve_full_path(Base), "test/Base.mustache")
-
-    def test_tpl_resolve_hint_extension(self):
-        """Provide the extension and resolve the full name"""
-        # Arrange
-        b = Base()
-        b.template_extension[Base] = "test"
-
-        # Act, Assert
-        self.assertEqual(b._resolve_full_path(Base), "./Base.test")
-
-    def test_tpl_resolve_hint_name(self):
-        """Provide the name and resolve the full name"""
-        # Arrange
-        b = Base()
-        b.template_name[Base] = "test"
-
-        # Act, Assert
-        self.assertEqual(b._resolve_full_path(Base), "./test.mustache")
-
-    def test_tpl_resolve_hint_file(self):
-        """Provide the file and resolve the full name"""
-        # Arrange
-        b = Base()
-        b.template_file[Base] = "test"
-
-        # Act, Assert
-        self.assertEqual(b._resolve_full_path(Base), "./test")
-
     def test_tpl_provide_template(self):
         """Provide the template"""
         # Arrange
@@ -187,7 +143,7 @@ class Nesting(TestCase):
         """A template must use all data supplied if in stricter mode"""
         # Arrange
         b = Base()
-        b.template[Base] = ""
+        b.template[Base] = " "
 
         # Act, Assert
         self.assertRaises(KeyError, b.render)
@@ -216,6 +172,6 @@ class Nesting(TestCase):
         """Inherited methods shouldn't be noticed (NB. wrt. strict mode)"""
         i = Inherited()
         i.template[Base] = "{{base_var}}{{hook}}"
-        i.template[Inherited] = ""
+        i.template[Inherited] = " "
         i.hooks['hook'] = Inherited
         i.render()

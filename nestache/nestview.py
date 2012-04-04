@@ -4,10 +4,9 @@
 Simple module built on top of the Mustache templating system.
 """
 
-import os
 import inspect
 from pprint import pformat
-from pystache import Template
+from pystache import View as PystacheView
 
 def func_names_on_class(cls):
     """Given a class, find out the names of
@@ -68,38 +67,6 @@ class View(object):
 
         self._render_calls      = None
 
-    def _resolve_template(self, cls):
-        """Either provide specified content or
-           fall back to content from a file"""
-        if cls in self.template:
-            return self.template.get(cls)
-
-        return open(self._resolve_full_path(cls)).read()
-
-    def _resolve_full_path(self, cls):
-        """Determine the full path of a file"""
-        return self._resolve_file(self._resolve_name(cls), cls)
-
-    def _resolve_name(self, cls):
-        """Either provide a specified name, or
-           fall back to the name of the class"""
-        return self.template_name.get(cls, cls.__name__)
-
-    def _resolve_file(self, name, cls):
-        """Given a name, provide the filename with
-           the specified (or defaulted) path"""
-        ext = self.template_extension.get(cls, 'mustache')
-
-        filename = self.template_file.get(cls, \
-            "%(name)s.%(ext)s" % dict(name=name,
-                                      ext=ext))
-
-        path = self.template_path.get(cls, '.')
-
-        return "%(path)s%(sep)s%(filename)s" % dict(path=path,
-                                                    sep=os.sep,
-                                                    filename=filename)
-
     def get(self, attr, _):
         """Quack like a dict."""
         if attr in self.hooks:
@@ -126,7 +93,14 @@ class View(object):
         expected_render_calls = func_names_on_class(cls)
 
         with SandboxCallState(self):
-            rendered = Template(self._resolve_template(cls), self).render()
+            view = PystacheView(context=self)
+            for v in 'template_path', 'template_extension', 'template_name', \
+                     'template_file', 'template':
+                attr = getattr(self, v)
+                if cls in attr:
+                    setattr(view, v, attr[cls])
+
+            rendered = view.render()
 
         if not self.options & View.OPT_IGNORE_UNREQUESTED and \
             self._render_calls != expected_render_calls:
