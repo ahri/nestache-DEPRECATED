@@ -67,6 +67,11 @@ class View(object):
 
         self._render_calls      = None
 
+    def _resolve_name(self, cls):
+        """Either provide a specified name, or
+           fall back to the name of the class"""
+        return self.template_name.get(cls, cls.__name__)
+
     def get(self, attr, _):
         """Quack like a dict."""
         if attr in self.hooks:
@@ -94,7 +99,8 @@ class View(object):
 
         with SandboxCallState(self):
             view = PystacheView(context=self)
-            for v in 'template_path', 'template_extension', 'template_name', \
+            view.template_name = self._resolve_name(cls)
+            for v in 'template_path', 'template_extension', \
                      'template_file', 'template':
                 attr = getattr(self, v)
                 if cls in attr:

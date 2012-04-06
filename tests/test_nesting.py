@@ -52,7 +52,7 @@ class Inherited(Base):
 
     pass
 
-class Nesting(TestCase):
+class TestNesting(TestCase):
 
     """
     Tests around nesting process
@@ -176,8 +176,22 @@ class Nesting(TestCase):
         i.hooks['hook'] = Inherited
         i.render()
 
+class TestPystache(TestCase):
+
+    """
+    Tests to ensure integration with Pystache works smoothly.
+    """
+
     def test_global_path_setting(self):
         """Set a global path for searches"""
         path = 'path'
         View.set_global_path(path)
         self.assertEqual(path, pystache.View.template_path)
+
+    def test_tpl_name(self):
+        """Ensure that the name is as expected"""
+        # Arrange
+        b = Base()
+        v = pystache.View(context=b)
+        v.template_name = b._resolve_name(Base)
+        self.assertEqual(v.get_template_name(), 'Base')
