@@ -13,7 +13,8 @@ def func_names_on_class(cls):
        the public functions defined on it"""
     return set([f.__name__ for f in cls.__dict__.values()
             if inspect.isfunction(f) and
-                not f.func_name.startswith('_')])
+                not f.func_name.startswith('_') and
+                f.func_name != 'route'])
 
 def debug_tpl(cls):
     """Generate a simple template using prettyprint"""
