@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from unittest import TestCase
-from nestache import View, debug_tpl
+from nestache import View, debug_tpl, tpl_ignore
 import pystache
 
 class Base(View):
@@ -51,6 +51,12 @@ class Debug(View):
 class Inherited(Base):
 
     pass
+
+class Ignoreable(View):
+
+    @tpl_ignore
+    def ignored(self):
+        pass
 
 class TestNesting(TestCase):
 
@@ -195,3 +201,16 @@ class TestPystache(TestCase):
         v = pystache.View(context=b)
         v.template_name = b._resolve_name(Base)
         self.assertEqual(v.get_template_name(), 'Base')
+
+class TestIgnored(TestCase):
+
+    """
+    Add ability to ignore methods via a decorator.
+    """
+
+    def test_ignored(self):
+        """Ensure that no errors occur when an ignored method is not used in a template"""
+        i = Ignoreable()
+        i.template[Ignoreable] = " "
+        i.hooks['hook'] = Ignoreable
+        i.render()

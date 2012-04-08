@@ -8,13 +8,19 @@ import inspect
 from pprint import pformat
 from pystache import View as PystacheView
 
+ignored = []
+def tpl_ignore(f):
+    """Decorator to ignore certain methods"""
+    ignored.append(f)
+    return f
+
 def func_names_on_class(cls):
     """Given a class, find out the names of
        the public functions defined on it"""
     return set([f.__name__ for f in cls.__dict__.values()
             if inspect.isfunction(f) and
                 not f.func_name.startswith('_') and
-                f.func_name != 'route'])
+                f not in ignored])
 
 def debug_tpl(cls):
     """Generate a simple template using prettyprint"""
